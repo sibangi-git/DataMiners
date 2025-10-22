@@ -96,3 +96,9 @@ Features
 •	Models and scalers are cached with st.cache_resource to avoid reloading on each rerun and to share resources across sessions.
 Requirements Python environment with Streamlit, scikit learn, joblib, pandas, numpy, and Altair installed and version pinned alongside your pickled models.
 
+References
+•	Centers for Disease Control and Prevention. (2025, August). 2024 BRFSS survey data and documentation. CDC. https://www.cdc.gov/brfss/annual_data/annual_2024.html
+•	OpenAI. (2025). ChatGPT (GPT-5) [Large language model]. https://chat.openai.com/ 
+•	Google. (2025). Colab AI [Computer software]. Google. https://colab.research.google.com/ 
+
+
