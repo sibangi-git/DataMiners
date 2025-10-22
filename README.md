@@ -23,24 +23,38 @@ RFSMOK3	Smoking Status (Risk Factor)	Categorical (Yes/No)	Identifies whether the
 DRNKANY6	Alcohol Consumption	Categorical (Yes/No)	Indicates whether the respondent has consumed alcohol in the past 30 days. Excessive drinking raises the risk for diabetes and heart disease.
 SSBSUGR2	Sugar-Sweetened Beverage Intake	Ordinal (Low/Med/High)	Measures frequency of consumption of sugary drinks. High intake correlates with obesity and insulin resistance.
 
- 
 Target Variables
 Variable	Full Form / Meaning	Type	Description / Relevance
 MICHD	Myocardial Infarction / Coronary Heart Disease	Binary (Target Variable 1)	Indicates whether the person has ever been told they had a heart attack, coronary heart disease, or angina.
 DIABETE4	Diabetes Status	Binary (Target Variable 2)	Indicates whether the respondent has been diagnosed with diabetes (excluding gestational diabetes). Serves as a key chronic disease indicator.
 4.	Tools and Technologies
 	Programming: Python 3.10 
-	Libraries: Pandas, NumPy, Scikit-learn, XGBoost, Seaborn, Matplotlib, Imbalanced-learn, Joblib
+	Libraries: Pandas, NumPy, Scikit-learn((LogisticRegression, RandomForestClassifier, HistGradientBoostingClassifier, GradientBoostingClassifier),, XGBoost, Seaborn, Matplotlib, Imbalanced-learn, Joblib
 	Visualization & Interface: Streamlit
 	Version Control: Git & GitHub
 	Platform: VS Code
 5.	Methodology
 1.	Data Cleaning and Preprocessing: Missing values handled, categorical encoding applied, and features scaled using StandardScaler.
+•  The initial dataset (LLCP2024.XPT) was filtered to include only completed interviews (DISPCODE == 1100).
+•  Missing values were handled by first replacing specific numerical codes (e.g., 7, 9, 777, 999) with NaN for 11 key features, and then dropping all rows containing any NaN values using .dropna(). This resulted in a cleaned dataset of 82,859 records.
+•  The SSBSUGR2 feature was binned into three categories ('Low', 'Medium', 'High') and then converted to numerical format using OrdinalEncoder.
+•  All features were scaled using StandardScaler before model training.
+
 2.	Exploratory Data Analysis: Examined correlations between lifestyle factors and disease prevalence. 
+•  A subset of 14 relevant columns was selected for the analysis.
+•  Initial exploration included examining data types, value counts for target variables (DIABETE4 and DRDXAR2), and assessing the extent of missing values.
+
 3.	Model Development: Two separate models were developed—one for heart disease (MICHD) and another for diabetes (DIABETE4). Baseline logistic regression models were first implemented, followed by enhanced models using XGBoost for performance improvement.
-4.	Stacked Ensemble: Combined XGBoost and Logistic Regression using StackingClassifier to achieve higher ROC-AUC scores for heart disease model. 
-5.	Model Evaluation: Metrics such as Accuracy, F1-Score, and ROC-AUC were used. ROC and Precision-Recall curves were visualized.
-6.	Deployment: Trained models and scalers were saved using Joblib and deployed on Streamlit for interactive web-based prediction.
+•  The notebook code focuses on developing a model for diabetes (DIABETE4).
+•  Four baseline models were implemented and compared: LogisticRegression, RandomForestClassifier, HistGradientBoostingClassifier, and GradientBoostingClassifier.
+•  The HistGradientBoostingClassifier was selected for performance improvement, and its hyperparameters were tuned using RandomizedSearchCV. The best parameters found were {'max_leaf_nodes': 70, 'max_iter': 300, 'learning_rate': 0.01}.
+
+4.	Combined XGBoost and Logistic Regression using StackingClassifier to achieve higher ROC-AUC scores for heart disease model and the final model used for diabetes disease was the tuned HistGradientBoostingClassifier.
+
+5.	Model Evaluation: Metrics such as Accuracy, F1-Score, and ROC-AUC were used. ROC and Precision-Recall curves were visualized. The performance of the final model was evaluated using several metrics. The final model achieved a test accuracy of 83.16%.A classification_report was generated to evaluate these metrics for each class. The final model achieved a macro-averaged ROC-AUC score of 0.7471 on the test set for diabetes.
+6.	Deployment: Trained models and scalers were saved using Joblib and deployed on Streamlit for interactive web-based prediction. The trained HistGradientBoostingClassifier model and the StandardScaler object were serialized and saved into separate files (hist_model_dib.pkl and scaler_hist_dib.pkl) using joblib, preparing them for deployment in an application like Streamlit.
+
+
 6.	Results
 The logistic regression model provided a strong baseline, while XGBoost improved predictive accuracy and recall across all target diseases. The ROC-AUC scores demonstrated reliable separability between positive and negative classes, confirming model robustness. Stacked ensemble models achieved the best trade-off between interpretability and accuracy.
 Model 1: Heart Disease Detection result    
@@ -71,3 +85,14 @@ Future Enhancements
 	Extend dashboard to include clinical alerts and EHR data integration.
 8.	Conclusion
 This project demonstrates how AI and public health datasets can be leveraged for preventive healthcare. By combining machine learning algorithms with behavioral and lifestyle data, the predictive model assists healthcare providers in identifying high-risk patients early and promoting proactive medical interventions. The Streamlit prototype showcases the potential for scalable, AI-driven health screening systems.
+
+Chronic Disease Screening — WebApp 
+Overview This Streamlit app screens for chronic conditions using pre trained scikit learn models, caching loaded artifacts for fast inference and rendering probability charts with Altair. Artifacts are loaded via joblib and should be version pinned because scikit learn pickles are not guaranteed to be cross version compatible.
+Features
+•	Sidebar form collects demographics and lifestyle inputs using a submit button so values update in a single batch.
+•	BMI is computed from height and weight and shown alongside the standard adult BMI categories for context.
+•	Diabetes head: multiclass probabilities are displayed for Diabetic and Prediabetic with the top class in the header and a 0–100% bar scale for readability.
+•	Heart head: binary prediction shows the chosen class and the positive class probability with a single bar on a 0–100% scale.
+•	Models and scalers are cached with st.cache_resource to avoid reloading on each rerun and to share resources across sessions.
+Requirements Python environment with Streamlit, scikit learn, joblib, pandas, numpy, and Altair installed and version pinned alongside your pickled models.
+
